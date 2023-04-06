@@ -1,44 +1,3 @@
---[[
-
-=====================================================================
-==================== READ THIS BEFORE CONTINUING ====================
-=====================================================================
-
-Kickstart.nvim is *not* a distribution.
-
-Kickstart.nvim is a template for your own configuration.
-  The goal is that you can read every line of code, top-to-bottom, and understand
-  what your configuration is doing.
-
-  Once you've done that, you should start exploring, configuring and tinkering to
-  explore Neovim!
-
-  If you don't know anything about Lua, I recommend taking some time to read through
-  a guide. One possible example:
-  - https://learnxinyminutes.com/docs/lua/
-
-  And then you can explore or search through `:help lua-guide`
-
-
-Kickstart Guide:
-
-I have left several `:help X` comments throughout the init.lua
-You should run that command and read that help section for more information.
-
-In addition, I have some `NOTE:` items throughout the file.
-These are for you, the reader to help understand what is happening. Feel free to delete
-them once you know what you're doing, but they should serve as a guide for when you
-are first encountering a few different constructs in your nvim config.
-
-I hope you enjoy your Neovim journey,
-- TJ
-
-P.S. You can delete this when you're done too. It's your config now :)
---]]
-
--- Set <space> as the leader key
--- See `:help mapleader`
---  NOTE: Must happen before plugins are required (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
@@ -73,8 +32,9 @@ require('lazy').setup({
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
 
-  -- NOTE: This is where your plugins related to LSP can be installed.
-  --  The configuration is done below. Search for lspconfig to find it below.
+  -- My plugins
+  'tpope/vim-surround',
+
   { -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
     dependencies = {
@@ -93,7 +53,11 @@ require('lazy').setup({
 
   { -- Autocompletion
     'hrsh7th/nvim-cmp',
-    dependencies = { 'hrsh7th/cmp-nvim-lsp', 'L3MON4D3/LuaSnip', 'saadparwaiz1/cmp_luasnip' },
+    dependencies = {
+      'hrsh7th/cmp-nvim-lsp',
+      'L3MON4D3/LuaSnip',
+      'saadparwaiz1/cmp_luasnip'
+    },
   },
 
   -- Useful plugin to show you pending keybinds.
@@ -115,6 +79,9 @@ require('lazy').setup({
   { -- Theme inspired by Atom
     'navarasu/onedark.nvim',
     priority = 1000,
+    opts = {
+      style = 'darker'
+    },
     config = function()
       vim.cmd.colorscheme 'onedark'
     end,
@@ -135,8 +102,6 @@ require('lazy').setup({
 
   { -- Add indentation guides even on blank lines
     'lukas-reineke/indent-blankline.nvim',
-    -- Enable `lukas-reineke/indent-blankline.nvim`
-    -- See `:help indent_blankline.txt`
     opts = {
       char = '┊',
       show_trailing_blankline_indent = false,
@@ -172,6 +137,43 @@ require('lazy').setup({
     end,
   },
 
+  -- { -- ncm2 auto completion
+  --   'ncm2/ncm2',
+  --   dependencies = {
+  --     'roxma/nvim-yarp',
+  --     'ncm2/ncm2-bufword',
+  --     'ncm2/ncm2-path',
+  --     'phpactor/ncm2-phpactor',
+  --   },
+  --   config = function()
+  --     vim.api.nvim_create_autocmd('BufEnter', {
+  --       pattern = '*',
+  --       command = 'call ncm2#enable_for_buffer()',
+  --     })
+  --   end,
+  -- },
+
+  -- {
+  --   'ncm2/ncm2-neosnippet',
+  --   dependencies = {
+  --     'Shougo/neosnippet',
+  --     'Shougo/neosnippet-snippets',
+  --   },
+  -- },
+
+  {
+    'iamcco/markdown-preview.nvim',
+    ft = 'markdown',
+    build = ':call mkdp#util#install()',
+  },
+
+  {
+    'junegunn/vim-easy-align',
+    config = function ()
+      vim.keymap.set({ 'x', 'n' }, 'ga', '<Plug>(EasyAlign)',  { desc = 'Simple and easy-to-use alignment plugin' })
+    end,
+  },
+
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
   --       Uncomment any of the lines below to enable them.
@@ -193,7 +195,7 @@ require('lazy').setup({
 -- See `:help vim.o`
 
 -- Set highlight on search
-vim.o.hlsearch = false
+vim.o.hlsearch = true
 
 -- Make line numbers default
 vim.wo.number = true
@@ -212,9 +214,18 @@ vim.o.breakindent = true
 -- Save undo history
 vim.o.undofile = true
 
+-- No wrap, we're more of a metalhead anyway
+vim.o.wrap = false
+
 -- Case insensitive searching UNLESS /C or capital in search
 vim.o.ignorecase = true
 vim.o.smartcase = true
+
+-- Keep cursor above bottom line
+vim.o.scrolloff = 8
+
+-- Show current cursor line
+vim.o.cursorline = true
 
 -- Keep signcolumn on by default
 vim.wo.signcolumn = 'yes'
@@ -259,8 +270,15 @@ require('telescope').setup {
       i = {
         ['<C-u>'] = false,
         ['<C-d>'] = false,
+        ['<C-k>'] = "move_selection_previous",
+        ['<C-j>'] = "move_selection_next",
       },
     },
+  },
+  pickers = {
+    find_files = {
+      theme = "ivy"
+    }
   },
 }
 
@@ -280,7 +298,7 @@ end, { desc = '[/] Fuzzily search in current buffer' })
 
 vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
 vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
-vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
+vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]qrd' })
 vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
 
@@ -288,7 +306,7 @@ vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { de
 -- See `:help nvim-treesitter`
 require('nvim-treesitter.configs').setup {
   -- Add languages to be installed here that you want installed for treesitter
-  ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'typescript', 'help', 'vim' },
+  ensure_installed = { 'c', 'cpp', 'javascript', 'go', 'lua', 'php', 'python', 'rust', 'tsx', 'typescript', 'help', 'vim' },
 
   -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
   auto_install = false,
@@ -356,6 +374,16 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = "Go to next diagnos
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = "Open floating diagnostic message" })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = "Open diagnostics list" })
 
+-- Tabnew helpers
+vim.keymap.set('n', '<tab>', '<cmd>tabnext<cr>', { desc = 'Go to next tab' })
+vim.keymap.set('n', '<s-tab>', '<cmd>tabprev<cr>',  { desc = 'Go to previous tab' })
+vim.keymap.set('n', '<leader><tab>', '<cmd>tabclose<cr>', { desc = 'Close current tab' })
+vim.keymap.set('n', '<leader>n', '<cmd>tabnew<cr>', { desc = 'Open new tab' })
+
+-- Split me
+vim.keymap.set('n', '<leader>s', '<cmd>sp<cr>', { desc = '[S]plit window' })
+vim.keymap.set('n', '<leader>v', '<cmd>vsp<cr>', { desc = '[V]ertically split window' })
+
 -- LSP settings.
 --  This function gets run when an LSP connects to a particular buffer.
 local on_attach = function(_, bufnr)
@@ -385,7 +413,7 @@ local on_attach = function(_, bufnr)
 
   -- See `:help K` for why this keymap
   nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
-  nmap('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
+  nmap('<M-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
 
   -- Lesser used LSP functionality
   nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
@@ -417,6 +445,12 @@ local servers = {
     Lua = {
       workspace = { checkThirdParty = false },
       telemetry = { enable = false },
+    },
+  },
+
+  yamlls = {
+    yaml = {
+      keyOrdering = false
     },
   },
 }
