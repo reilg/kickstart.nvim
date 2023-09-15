@@ -15,6 +15,30 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require('lazy').setup({
+  -- Copilot
+  {
+    'zbirenbaum/copilot.lua',
+    cmd = 'Copilot',
+    event = 'InsertEnter',
+    config = function()
+      require('copilot').setup({})
+      -- enable copilot to be inserted before cmp
+      vim.cmd [[
+        augroup copilot
+        autocmd!
+        autocmd CompleteDone * lua require('copilot').done()
+        augroup END
+        ]]
+
+    end,
+  },
+
+  {
+    'zbirenbaum/copilot-cmp',
+    config = function()
+      require('copilot_cmp').setup()
+    end,
+  },
 
   -- Git related plugins
   'tpope/vim-fugitive',
@@ -309,7 +333,9 @@ require('nvim-treesitter.configs').setup {
     'go',
     'lua',
     'php',
-    'vue'
+    'vue',
+    -- 'yaml',
+    -- 'jsdoc',
   },
 
   -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
@@ -521,6 +547,9 @@ cmp.setup {
     end, { 'i', 's' }),
   },
   sources = {
+    -- Copilot source
+    { name = 'copilot', group_index = 2 },
+    -- Other sources
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
     { name = 'buffer',
